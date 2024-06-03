@@ -1,0 +1,14 @@
+expert_path:
+demos: 10
+subsample_freq: 1
+treshold:
+
+constrain: false
+grad_pen: false
+tanh: false
+regularize: true
+div:
+
+alpha: 2.5
+lambda_gp: 10
+mix_coeff: 1
