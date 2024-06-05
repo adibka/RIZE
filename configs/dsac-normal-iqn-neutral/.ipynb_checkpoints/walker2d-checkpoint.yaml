@@ -8,6 +8,7 @@ algorithm_kwargs:
   num_trains_per_train_loop: 1000
 env: Walker2d-v2
 seed: 0
+expectation_z: false
 eval_env_num: 10
 expl_env_num: 10
 layer_size: 256
@@ -24,6 +25,4 @@ trainer_kwargs:
   tau_type: iqn
   use_automatic_entropy_tuning: false
   zf_lr: 0.0003
-  risk_type: std
-  risk_param: 0.2
 version: normal-iqn-neutral

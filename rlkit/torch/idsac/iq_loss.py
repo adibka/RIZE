@@ -5,32 +5,60 @@ Standalone IQ-Learn algorithm. See LICENSE for licensing terms.
 import torch
 import torch.nn.functional as F
 
-
 def iq_loss(
-    expert_pred,
+    expert_z_pred, 
     expert_target,
-    policy_pred,
+    expert_v_pred,
+    policy_z_pred, 
     policy_target,
+    policy_v_pred,
     policy_r,
-    log_pi,
-    alpha,
-    args
-):
-    expert_reward = (expert_pred - expert_target)
-    policy_reward = (policy_pred - alpha * log_pi - policy_target)
-    loss = - expert_reward.mean() + policy_reward.mean()
+    v0,
+    args,
+    ):
     
-    if args['regularize']:
-        chi2_loss = 1/(4 * args['alpha']) * \
-                        (torch.cat([expert_reward - 10., (policy_reward + alpha * log_pi) - policy_r], dim=-1)**2).mean()
-        loss += chi2_loss
+    discount = args['trainer_kwargs']['discount']
+    iq_args = args['iq_kwargs']
+    expert_reward = expert_z_pred - expert_target
+    policy_reward = policy_z_pred - policy_target
+    
+    expert_loss = - expert_reward.mean()
+    
+    if iq_args['loss'] == "value_policy":
+        # sample using only policy states
+        # E_(ρ)[V(s) - γV(s')]
+        value_loss = (policy_v_pred - policy_target).mean()
         
+    elif iq_args['loss'] == "value":
+        # sample using expert and policy states (works online)
+        # E_(ρ)[V(s) - γV(s')]
+        value_loss = torch.cat([(expert_v_pred - expert_target),
+                                (policy_v_pred - policy_target)], dim=-1).mean()
+
+    elif iq_args['loss'] == "value_expert":
+        # sample using only expert states (works offline)
+        # E_(ρ)[V(s) - γV(s')]  
+        value_loss = (expert_v_pred - expert_target).mean()
+
+    elif iq_args['loss'] == "v0":
+        # alternate sampling using only initial states (works offline but usually suboptimal than `value_expert` startegy)
+        # (1-γ)E_(ρ0)[V(s0)]
+        value_loss = (1 - discount) * v0
+
+    if iq_args['regularize']:
+        expert_td = expert_reward - 10.
+        policy_td = policy_reward - policy_r
+        chi2_loss = 1/(4 * iq_args['alpha']) * (torch.cat([expert_td, policy_td], dim=-1)**2).mean()
+        
+    loss = expert_loss + value_loss + chi2_loss
     loss_dict = {
         'expert_reward': expert_reward.mean().item(),
         'policy_reward': policy_reward.mean().item(),
-        'chi2_loss': chi2_loss.item() if args['regularize'] else 0,
+        'value_loss': value_loss.item(),
+        'chi2_loss': chi2_loss.item() if iq_args['regularize'] else 0,
     }
     return loss, loss_dict
+
 
 
 def iq_distr_loss(

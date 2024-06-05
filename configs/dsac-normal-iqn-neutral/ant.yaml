@@ -8,6 +8,7 @@ algorithm_kwargs:
   num_trains_per_train_loop: 1000
 env: Ant-v2
 seed: 0
+expectation_z: false
 eval_env_num: 10
 expl_env_num: 10
 layer_size: 256
