@@ -156,16 +156,17 @@ class IDSACTrainer(TorchIQTrainer):
         else:
             return target_z
 
-    def getV(self, obs):
-        actions, _, _, log_pi, *_ = self.policy(
-            obs,
-            reparameterize=True,
-            return_log_prob=True,
-        )
-        tau, tau_hat, presum_tau = self.get_tau(obs, actions, fp=self.fp)
-        current_z1, current_z2 = self.getZ(obs, actions, tau_hat, presum_tau)
-        current_v = torch.min(current_z1, current_z2) - self.alpha * log_pi
-        return current_v
+    # def getV(self, obs):
+    #     actions, _, _, log_pi, *_ = self.policy(
+    #         obs,
+    #         reparameterize=True,
+    #         return_log_prob=True,
+    #     )
+    #     tau, tau_hat, presum_tau = self.get_tau(obs, actions, fp=self.fp)
+    #     current_z1, current_z2 = self.getZ(obs, actions, tau_hat, presum_tau)
+    #     current_v1 = current_z1 - self.alpha * log_pi
+    #     current_v2 = current_z2 - self.alpha * log_pi
+    #     return current_v1, current_v2
 
     def get_targetV(self, next_obs):
         next_actions, _, _, next_log_pi, *_ = self.target_policy(
@@ -218,36 +219,40 @@ class IDSACTrainer(TorchIQTrainer):
             policy_target = (1. - policy_terminals) * self.discount * policy_v_target
             expert_v_target = self.get_targetV(expert_next_obs)
             expert_target = (1. - expert_terminals) * self.discount * expert_v_target
-        
-        policy_v_pred = self.getV(policy_obs)
-        expert_v_pred = self.getV(expert_obs)    
+          
         tau, tau_hat, presum_tau = self.get_tau(policy_obs, policy_actions, fp=self.fp)
         policy_z1_pred, policy_z2_pred = self.getZ(policy_obs, policy_actions, tau_hat, presum_tau)
         expert_z1_pred, expert_z2_pred = self.getZ(expert_obs, expert_actions, tau_hat, presum_tau)
         
+        # policy_v1_pred, policy_v2_pred = self.getV(policy_obs)
+        # expert_v1_pred, expert_v2_pred = self.getV(expert_obs)  
         # Keep track of values of initial states
-        # v0 = self.getV(expert_obs.clone()).mean()
+        # v0 = self.getV(expert_obs).mean()
         v0 = 0
-        
+        _, _, _, expert_log_pi, *_ = self.policy(
+            expert_obs,
+            reparameterize=True,
+            return_log_prob=True,
+        )
         zf1_loss, zf1_loss_dict = self.zf_criterion(
             expert_z1_pred, 
             expert_target,
-            expert_v_pred,
+            expert_log_pi,
             policy_z1_pred, 
             policy_target,
-            policy_v_pred,
             policy_rewards,
+            log_pi,
             v0,
             self.args,
         )
         zf2_loss, zf2_loss_dict = self.zf_criterion(
             expert_z2_pred, 
             expert_target,
-            expert_v_pred,
+            expert_log_pi,
             policy_z2_pred, 
             policy_target,
-            policy_v_pred,
             policy_rewards,
+            log_pi,
             v0,
             self.args,
         )
@@ -372,11 +377,11 @@ class IDSACTrainer(TorchIQTrainer):
             ))
             self.eval_statistics.update(create_stats_ordered_dict(
                 'Z Expert Targets',
-                ptu.get_numpy(expert_z_target),
+                ptu.get_numpy(expert_target),
             ))
             self.eval_statistics.update(create_stats_ordered_dict(
                 'Z Policy Targets',
-                ptu.get_numpy(policy_z_target),
+                ptu.get_numpy(policy_target),
             ))
             # self.eval_statistics.update(create_stats_ordered_dict(
             #     'Q1 OOD',

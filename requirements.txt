@@ -1,0 +1,11 @@
+Cython==0.29.37
+gym[box2d]==0.17.1
+stable_baselines3==1.0
+tensorboard==2.4.0
+tensorboardX==2.1
+torch==1.13.1
+tornado==5.1.1
+tqdm==4.42.1
+mujoco_py==2.0.2
+jupyterlab==4.2.0
+gtimer

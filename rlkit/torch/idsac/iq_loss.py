@@ -5,14 +5,15 @@ Standalone IQ-Learn algorithm. See LICENSE for licensing terms.
 import torch
 import torch.nn.functional as F
 
+
 def iq_loss(
     expert_z_pred, 
     expert_target,
-    expert_v_pred,
+    expert_log_pi,
     policy_z_pred, 
     policy_target,
-    policy_v_pred,
     policy_r,
+    policy_log_pi,
     v0,
     args,
     ):
@@ -21,6 +22,8 @@ def iq_loss(
     iq_args = args['iq_kwargs']
     expert_reward = expert_z_pred - expert_target
     policy_reward = policy_z_pred - policy_target
+    expert_v_pred = expert_z_pred - discount * expert_log_pi
+    policy_v_pred = policy_z_pred - discount * policy_log_pi
     
     expert_loss = - expert_reward.mean()
     
@@ -46,9 +49,9 @@ def iq_loss(
         value_loss = (1 - discount) * v0
 
     if iq_args['regularize']:
-        expert_td = expert_reward - 10.
-        policy_td = policy_reward - policy_r
-        chi2_loss = 1/(4 * iq_args['alpha']) * (torch.cat([expert_td, policy_td], dim=-1)**2).mean()
+        td_expert = expert_reward - 10.
+        td_policy = policy_reward - policy_r
+        chi2_loss = 1/(4 * iq_args['alpha']) * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
         
     loss = expert_loss + value_loss + chi2_loss
     loss_dict = {
