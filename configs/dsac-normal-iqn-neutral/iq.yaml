@@ -1,8 +1,0 @@
-expert_path:
-subsample_freq: 1
-demos: 10
-regularize: true
-div:
-loss: value_policy
-alpha: 2.5
-
