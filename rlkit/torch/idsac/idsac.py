@@ -35,6 +35,9 @@ class IDSACTrainer(TorchIQTrainer):
             zf_lr=3e-4,
             tau_type='iqn',
             fp_lr=1e-5,
+            bias=10.0,
+            bias_lr=1e-3,
+            use_automatic_bias_tuning=True,
             num_quantiles=32,
             risk_type='neutral',
             risk_param=0.,
@@ -46,6 +49,8 @@ class IDSACTrainer(TorchIQTrainer):
             clip_norm=0.,
             use_automatic_entropy_tuning=False,
             target_entropy=None,
+            dropout=False,
+            drop_rate=0.01,
     ):
         super().__init__()
         self.args = args
@@ -61,12 +66,23 @@ class IDSACTrainer(TorchIQTrainer):
         self.target_update_period = target_update_period
         self.tau_type = tau_type
         self.num_quantiles = num_quantiles
+        self.use_automatic_bias_tuning = use_automatic_bias_tuning
         self.use_automatic_entropy_tuning = use_automatic_entropy_tuning
+
+        if self.use_automatic_bias_tuning:
+            self.bias = ptu.tensor(bias, dtype=torch.float, requires_grad=True)
+            self.bias_optimizer = optimizer_class(
+                [self.bias],
+                lr=bias_lr,
+            )
+        else:
+            self.bias = bias
+        
         if self.use_automatic_entropy_tuning:
             if target_entropy:
                 self.target_entropy = target_entropy
             else:
-                self.target_entropy = -np.prod(self.env.action_space.shape).item()  # heuristic value from Tuomas
+                self.target_entropy = -np.prod(self.env.action_space.shape).item()
             self.log_alpha = ptu.zeros(1, requires_grad=True)
             self.alpha_optimizer = optimizer_class(
                 [self.log_alpha],
@@ -243,6 +259,7 @@ class IDSACTrainer(TorchIQTrainer):
             policy_rewards,
             log_pi,
             v0,
+            self.bias,
             self.args,
         )
         zf2_loss, zf2_loss_dict = self.zf_criterion(
@@ -254,6 +271,7 @@ class IDSACTrainer(TorchIQTrainer):
             policy_rewards,
             log_pi,
             v0,
+            self.bias,
             self.args,
         )
         # Monitor: OOD action values
@@ -273,6 +291,17 @@ class IDSACTrainer(TorchIQTrainer):
         zf2_loss.backward(retain_graph=True)
         self.zf2_optimizer.step()
         gt.stamp('backward_zf2', unique=False)
+        """
+        Update Bias
+        """
+        if self.use_automatic_bias_tuning:
+            implicit_reward = (expert_z1_pred + expert_z2_pred)/2 - expert_target
+            bias_loss = 0.5 * ((implicit_reward.detach() - self.bias)**2).mean()
+            self.bias_optimizer.zero_grad()
+            bias_loss.backward()
+            self.bias_optimizer.step()
+        else:
+            bias_loss = 0.
         """
         Update FP
         """
@@ -360,6 +389,9 @@ class IDSACTrainer(TorchIQTrainer):
             self.eval_statistics['ZF CHI2 Term'] = \
                         (zf1_loss_dict['chi2_loss'] + zf2_loss_dict['chi2_loss']) / 2
             self.eval_statistics['Policy Loss'] = policy_loss.item()
+            if self.use_automatic_bias_tuning:
+                self.eval_statistics['Bias Loss'] = bias_loss.item()
+                self.eval_statistics['Bias Value'] = self.bias.item()
             self.eval_statistics['Policy Grad Norm'] = policy_grad_norm
             self.eval_statistics['Policy Param Norm'] = policy_param_norm
             self.eval_statistics['Zf1 Grad Norm'] = zf1_grad_norm

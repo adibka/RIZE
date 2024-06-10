@@ -15,6 +15,7 @@ def iq_loss(
     policy_r,
     policy_log_pi,
     v0,
+    bias,
     args,
     ):
     
@@ -31,25 +32,23 @@ def iq_loss(
         # sample using only policy states
         # E_(ρ)[V(s) - γV(s')]
         value_loss = (policy_v_pred - policy_target).mean()
-        
     elif iq_args['loss'] == "value":
         # sample using expert and policy states (works online)
         # E_(ρ)[V(s) - γV(s')]
         value_loss = torch.cat([(expert_v_pred - expert_target),
-                                (policy_v_pred - policy_target)], dim=-1).mean()
-
+                                (policy_v_pred - policy_target)],
+                               dim=-1).mean()
     elif iq_args['loss'] == "value_expert":
         # sample using only expert states (works offline)
         # E_(ρ)[V(s) - γV(s')]  
         value_loss = (expert_v_pred - expert_target).mean()
-
     elif iq_args['loss'] == "v0":
         # alternate sampling using only initial states (works offline but usually suboptimal than `value_expert` startegy)
         # (1-γ)E_(ρ0)[V(s0)]
         value_loss = (1 - discount) * v0
 
     if iq_args['regularize']:
-        td_expert = expert_reward - 10.
+        td_expert = expert_reward - bias
         td_policy = policy_reward - policy_r
         chi2_loss = 1/(4 * iq_args['alpha']) * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
         
