@@ -77,20 +77,20 @@ class IDSACTrainer(TorchIQTrainer):
             )
         else:
             self.bias = bias
-        
+            
         if self.use_automatic_entropy_tuning:
             if target_entropy:
                 self.target_entropy = target_entropy
             else:
                 self.target_entropy = -np.prod(self.env.action_space.shape).item()
-            self.log_alpha = ptu.zeros(1, requires_grad=True)
+            self.log_alpha = ptu.tensor(np.log(alpha), dtype=torch.float, requires_grad=True)
             self.alpha_optimizer = optimizer_class(
                 [self.log_alpha],
                 lr=policy_lr,
             )
         else:
             self.alpha = alpha
-
+        
         self.zf_criterion = iq_loss
         self.policy_optimizer = optimizer_class(
             self.policy.parameters(),
@@ -134,6 +134,12 @@ class IDSACTrainer(TorchIQTrainer):
         self._n_train_steps_total = 0
         self._need_to_update_eval_statistics = True
         self.EPS = 1e-6
+        # linear decay alpha temperature
+        # self.start_alpha = 0.05
+        # self.end_alpha = 0.005
+        # self.duration = 150000
+        # self.slope = (self.end_alpha - self.start_alpha) / self.duration
+        # self.alpha_decay(0)
 
     def get_tau(self, obs, actions, fp=None):
         if self.tau_type == 'fix':
@@ -151,6 +157,13 @@ class IDSACTrainer(TorchIQTrainer):
             tau_hat[:, 0:1] = tau[:, 0:1] / 2.
             tau_hat[:, 1:] = (tau[:, 1:] + tau[:, :-1]) / 2.
         return tau, tau_hat, presum_tau
+
+    # def alpha_decay(self, epoch):
+    #     self.alpha = max(self.slope * epoch + self.start_alpha, self.end_alpha)
+
+    @property
+    def alpha(self):
+        return self.log_alpha.exp()
 
     def getZ(self, obs, actions, tau_hat, presum_tau):
         z1_pred = self.zf1(obs, actions, tau_hat)
@@ -218,14 +231,12 @@ class IDSACTrainer(TorchIQTrainer):
             return_log_prob=True,
         )
         if self.use_automatic_entropy_tuning:
-            alpha_loss = -(self.log_alpha.exp() * (log_pi + self.target_entropy).detach()).mean()
+            alpha_loss = -(self.alpha * (log_pi + self.target_entropy).detach()).mean()
             self.alpha_optimizer.zero_grad()
             alpha_loss.backward()
             self.alpha_optimizer.step()
-            alpha = self.log_alpha.exp()
         else:
             alpha_loss = 0
-            alpha = self.alpha
         gt.stamp('preback_alpha', unique=False)
         """
         Update ZF
@@ -344,7 +355,7 @@ class IDSACTrainer(TorchIQTrainer):
                 q2_new_actions = torch.sum(risk_weights * new_presum_tau * z2_new_actions, dim=1, keepdims=True)    
         q_new_actions = torch.min(q1_new_actions, q2_new_actions)
         
-        policy_loss = (alpha * log_pi - q_new_actions).mean()
+        policy_loss = (self.alpha.detach() * log_pi - q_new_actions).mean()
         gt.stamp('preback_policy', unique=False)
 
         self.policy_optimizer.zero_grad()
@@ -441,10 +452,13 @@ class IDSACTrainer(TorchIQTrainer):
                 exclude_max_min=True
             ))
             if self.use_automatic_entropy_tuning:
-                self.eval_statistics['Alpha'] = alpha.item()
+                self.eval_statistics['Alpha'] = self.alpha.item()
                 self.eval_statistics['Alpha Loss'] = alpha_loss.item()
+            else:
+                self.eval_statistics['Alpha'] = self.alpha
         self._n_train_steps_total += 1
-
+        # self.alpha_decay(self._n_train_steps_total)
+        
     def get_diagnostics(self):
         return self.eval_statistics
 
