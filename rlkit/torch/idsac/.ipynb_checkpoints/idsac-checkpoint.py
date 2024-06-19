@@ -134,10 +134,11 @@ class IDSACTrainer(TorchIQTrainer):
         self._n_train_steps_total = 0
         self._need_to_update_eval_statistics = True
         self.EPS = 1e-6
-        # linear decay alpha temperature
-        # self.start_alpha = 0.05
-        # self.end_alpha = 0.005
-        # self.duration = 150000
+        
+        # linear schedule entropy temperature
+        # self.start_alpha = 0.1
+        # self.end_alpha = 0.001
+        # self.duration = 100000
         # self.slope = (self.end_alpha - self.start_alpha) / self.duration
         # self.alpha_decay(0)
 
@@ -251,8 +252,6 @@ class IDSACTrainer(TorchIQTrainer):
         policy_z1_pred, policy_z2_pred = self.getZ(policy_obs, policy_actions, tau_hat, presum_tau)
         expert_z1_pred, expert_z2_pred = self.getZ(expert_obs, expert_actions, tau_hat, presum_tau)
         
-        # policy_v1_pred, policy_v2_pred = self.getV(policy_obs)
-        # expert_v1_pred, expert_v2_pred = self.getV(expert_obs)  
         # Keep track of values of initial states
         # v0 = self.getV(expert_obs).mean()
         v0 = 0
@@ -354,7 +353,7 @@ class IDSACTrainer(TorchIQTrainer):
                 q1_new_actions = torch.sum(risk_weights * new_presum_tau * z1_new_actions, dim=1, keepdims=True)
                 q2_new_actions = torch.sum(risk_weights * new_presum_tau * z2_new_actions, dim=1, keepdims=True)    
         q_new_actions = torch.min(q1_new_actions, q2_new_actions)
-        
+
         policy_loss = (self.alpha.detach() * log_pi - q_new_actions).mean()
         gt.stamp('preback_policy', unique=False)
 

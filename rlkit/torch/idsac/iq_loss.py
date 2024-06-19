@@ -35,9 +35,7 @@ def iq_loss(
     elif iq_args['loss'] == "value":
         # sample using expert and policy states (works online)
         # E_(ρ)[V(s) - γV(s')]
-        value_loss = torch.cat([(expert_v_pred - expert_target),
-                                (policy_v_pred - policy_target)],
-                               dim=-1).mean()
+        value_loss = torch.cat([(expert_v_pred - expert_target), (policy_v_pred - policy_target)], dim=-1).mean()
     elif iq_args['loss'] == "value_expert":
         # sample using only expert states (works offline)
         # E_(ρ)[V(s) - γV(s')]  
