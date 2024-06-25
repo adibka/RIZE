@@ -136,9 +136,9 @@ class IDSACTrainer(TorchIQTrainer):
         self.EPS = 1e-6
         
         # linear schedule entropy temperature
-        # self.start_alpha = 0.1
-        # self.end_alpha = 0.001
-        # self.duration = 100000
+        # self.start_alpha = 0.01
+        # self.end_alpha = 0.0001
+        # self.duration = 150000
         # self.slope = (self.end_alpha - self.start_alpha) / self.duration
         # self.alpha_decay(0)
 
@@ -162,9 +162,9 @@ class IDSACTrainer(TorchIQTrainer):
     # def alpha_decay(self, epoch):
     #     self.alpha = max(self.slope * epoch + self.start_alpha, self.end_alpha)
 
-    @property
-    def alpha(self):
-        return self.log_alpha.exp()
+    # @property
+    # def alpha(self):
+    #     return self.log_alpha.exp()
 
     def getZ(self, obs, actions, tau_hat, presum_tau):
         z1_pred = self.zf1(obs, actions, tau_hat)
@@ -270,6 +270,7 @@ class IDSACTrainer(TorchIQTrainer):
             log_pi,
             v0,
             self.bias,
+            self.alpha,
             self.args,
         )
         zf2_loss, zf2_loss_dict = self.zf_criterion(
@@ -282,6 +283,7 @@ class IDSACTrainer(TorchIQTrainer):
             log_pi,
             v0,
             self.bias,
+            self.alpha,
             self.args,
         )
         # Monitor: OOD action values
@@ -353,8 +355,8 @@ class IDSACTrainer(TorchIQTrainer):
                 q1_new_actions = torch.sum(risk_weights * new_presum_tau * z1_new_actions, dim=1, keepdims=True)
                 q2_new_actions = torch.sum(risk_weights * new_presum_tau * z2_new_actions, dim=1, keepdims=True)    
         q_new_actions = torch.min(q1_new_actions, q2_new_actions)
-
-        policy_loss = (self.alpha.detach() * log_pi - q_new_actions).mean()
+        
+        policy_loss = (self.alpha * log_pi - q_new_actions).mean()
         gt.stamp('preback_policy', unique=False)
 
         self.policy_optimizer.zero_grad()

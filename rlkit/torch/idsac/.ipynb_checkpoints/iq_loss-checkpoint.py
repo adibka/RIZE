@@ -16,6 +16,7 @@ def iq_loss(
     policy_log_pi,
     v0,
     bias,
+    alpha,
     args,
     ):
     
@@ -23,8 +24,8 @@ def iq_loss(
     iq_args = args['iq_kwargs']
     expert_reward = expert_z_pred - expert_target
     policy_reward = policy_z_pred - policy_target
-    expert_v_pred = expert_z_pred - discount * expert_log_pi
-    policy_v_pred = policy_z_pred - discount * policy_log_pi
+    expert_v_pred = expert_z_pred - alpha * expert_log_pi
+    policy_v_pred = policy_z_pred - alpha * policy_log_pi
     
     expert_loss = - expert_reward.mean()
     
