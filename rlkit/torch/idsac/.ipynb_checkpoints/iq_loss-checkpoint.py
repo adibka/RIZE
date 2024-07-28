@@ -44,12 +44,12 @@ def iq_loss(
     elif iq_args['loss'] == "v0":
         # alternate sampling using only initial states (works offline but usually suboptimal than `value_expert` startegy)
         # (1-γ)E_(ρ0)[V(s0)]
-        value_loss = (1 - discount) * v0
+        value_loss = (1 - discount) * v0.mean()
 
     if iq_args['regularize']:
         td_expert = expert_reward - bias
         td_policy = policy_reward - policy_r
-        chi2_loss = 1/(4 * iq_args['alpha']) * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
+        chi2_loss = iq_args['alpha'] * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
         
     loss = expert_loss + value_loss + chi2_loss
     loss_dict = {
@@ -59,51 +59,3 @@ def iq_loss(
         'chi2_loss': chi2_loss.item() if iq_args['regularize'] else 0,
     }
     return loss, loss_dict
-
-
-
-def iq_distr_loss(
-    input_expert, 
-    target_expert,
-    input_policy,
-    target_policy,
-    policy_reward,
-    log_pi,
-    alpha,
-    tau,
-    weight,
-    args
-):
-    expert_reward = input_expert - target_expert
-    policy_reward = input_policy - alpha * log_pi - target_policy
-    loss = - expert_reward.mean() + policy_reward.mean()
-
-    if args['regularize']:
-        expert_rho = quantile_regression_loss(input_expert, 10 + target_expert, tau, weight)
-        policy_rho = quantile_regression_loss(input_policy, policy_reward + target_policy, tau, weight)
-        chi2_loss = 1/(4 * args['alpha']) * torch.cat([expert_rho, policy_rho], dim=-1).mean()
-        loss += chi2_loss
-    
-    loss_dict = {
-        'expert_reward': expert_reward.mean().item(),
-        'policy_reward': policy_reward.mean().item(),
-        'chi2_loss': chi2_loss.item() if args['regularize'] else 0,
-    }
-    return loss, loss_dict
-
-
-def quantile_regression_loss(inputs, targets, tau, weight):
-    """
-    input: (N, T)
-    target: (N, T)
-    tau: (N, T)
-    """
-    inputs = inputs.unsqueeze(-1)
-    targets = targets.detach().unsqueeze(-2)
-    tau = tau.detach().unsqueeze(-1)
-    # weight = weight.detach().unsqueeze(-2)
-    expanded_inputs, expanded_targets = torch.broadcast_tensors(inputs, targets)
-    L = (expanded_inputs - expanded_targets)**2
-    sign = torch.sign(expanded_inputs - expanded_targets) / 2. + 0.5
-    rho = torch.abs(tau - sign) * L
-    return rho.sum(dim=-1)

@@ -84,32 +84,6 @@ class QuantileMlp(nn.Module):
         return eval_np(self, state, action, tau)
 
 
-    # def forward(self, state, action, tau):
-    #     """
-    #     Calculate Quantile Value in Batch
-    #     tau: quantile fractions, (N, T)
-    #     """
-    #     h = self.penultimate_layer(state, action, tau)
-    #     h /= (torch.linalg.norm(h) + 1e-6)
-    #     output = self.last_fc(h).squeeze(-1)  # (N, T)
-    #     return output
-
-    # def penultimate_layer(self, state, action, tau):
-    #     """
-    #     Calculate Quantile Value in Batch
-    #     tau: quantile fractions, (N, T)
-    #     """
-    #     h = torch.cat([state, action], dim=1)
-    #     h = self.base_fc(h)  # (N, C)
-
-    #     x = torch.cos(tau.unsqueeze(-1) * self.const_vec * np.pi)  # (N, T, E)
-    #     x = self.tau_fc(x)  # (N, T, C)
-
-    #     h = torch.mul(x, h.unsqueeze(-2))  # (N, T, C)
-    #     h = self.merge_fc(h)  # (N, T, C)
-    #     return h
-
-
 class Critic(nn.Module):
     def __init__(
             self,

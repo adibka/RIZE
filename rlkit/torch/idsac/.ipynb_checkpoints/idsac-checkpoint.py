@@ -117,30 +117,10 @@ class IDSACTrainer(TorchIQTrainer):
         self.risk_type = risk_type
         self.risk_schedule = LinearSchedule(risk_schedule_timesteps, risk_param,
                                             risk_param if risk_param_final is None else risk_param_final)
-        # cql args
-        # cql_kwargs = args['cql_kwargs']
-        # self.use_cql = cql_kwargs['use_cql']
-        # self.num_random = cql_kwargs['num_random']
-        # self.cql_weight = cql_kwargs['cql_weight']
-        # self.with_lagrange = cql_kwargs['with_lagrange']
-        # lagrange_thresh = cql_kwargs['lagrange_thresh']
-        # if lagrange_thresh < 0:
-        #     self.with_lagrange = False
-        # if self.with_lagrange:
-        #     self.target_action_gap = lagrange_thresh
-        #     self.log_alpha_prime = torch.zeros(1, device=self.device, requires_grad=True)
-        #     self.alpha_prime_optimizer = Adam([self.log_alpha_prime], lr=zf_lr)
         self.eval_statistics = OrderedDict()
         self._n_train_steps_total = 0
         self._need_to_update_eval_statistics = True
         self.EPS = 1e-6
-        
-        # linear schedule entropy temperature
-        # self.start_alpha = 0.01
-        # self.end_alpha = 0.0001
-        # self.duration = 150000
-        # self.slope = (self.end_alpha - self.start_alpha) / self.duration
-        # self.alpha_decay(0)
 
     def get_tau(self, obs, actions, fp=None):
         if self.tau_type == 'fix':
@@ -158,13 +138,6 @@ class IDSACTrainer(TorchIQTrainer):
             tau_hat[:, 0:1] = tau[:, 0:1] / 2.
             tau_hat[:, 1:] = (tau[:, 1:] + tau[:, :-1]) / 2.
         return tau, tau_hat, presum_tau
-
-    # def alpha_decay(self, epoch):
-    #     self.alpha = max(self.slope * epoch + self.start_alpha, self.end_alpha)
-
-    # @property
-    # def alpha(self):
-    #     return self.log_alpha.exp()
 
     def getZ(self, obs, actions, tau_hat, presum_tau):
         z1_pred = self.zf1(obs, actions, tau_hat)
@@ -186,17 +159,17 @@ class IDSACTrainer(TorchIQTrainer):
         else:
             return target_z
 
-    # def getV(self, obs):
-    #     actions, _, _, log_pi, *_ = self.policy(
-    #         obs,
-    #         reparameterize=True,
-    #         return_log_prob=True,
-    #     )
-    #     tau, tau_hat, presum_tau = self.get_tau(obs, actions, fp=self.fp)
-    #     current_z1, current_z2 = self.getZ(obs, actions, tau_hat, presum_tau)
-    #     current_v1 = current_z1 - self.alpha * log_pi
-    #     current_v2 = current_z2 - self.alpha * log_pi
-    #     return current_v1, current_v2
+    def getV(self, obs):
+        actions, _, _, log_pi, *_ = self.policy(
+            obs,
+            reparameterize=True,
+            return_log_prob=True,
+        )
+        tau, tau_hat, presum_tau = self.get_tau(obs, actions, fp=self.fp)
+        current_z1, current_z2 = self.getZ(obs, actions, tau_hat, presum_tau)
+        current_v1 = current_z1 - self.alpha * log_pi
+        current_v2 = current_z2 - self.alpha * log_pi
+        return current_v1, current_v2
 
     def get_targetV(self, next_obs):
         next_actions, _, _, next_log_pi, *_ = self.target_policy(
@@ -205,8 +178,7 @@ class IDSACTrainer(TorchIQTrainer):
             return_log_prob=True,
         )
         next_tau, next_tau_hat, next_presum_tau = self.get_tau(next_obs, next_actions, fp=self.target_fp)
-        target_v = self.get_targetZ(next_obs, next_actions, next_tau_hat, next_presum_tau) - \
-                   self.alpha * next_log_pi
+        target_v = self.get_targetZ(next_obs, next_actions, next_tau_hat, next_presum_tau) - self.alpha * next_log_pi
         return target_v
 
     def train_from_torch(self, policy_batch, expert_batch):
@@ -252,14 +224,13 @@ class IDSACTrainer(TorchIQTrainer):
         policy_z1_pred, policy_z2_pred = self.getZ(policy_obs, policy_actions, tau_hat, presum_tau)
         expert_z1_pred, expert_z2_pred = self.getZ(expert_obs, expert_actions, tau_hat, presum_tau)
         
-        # Keep track of values of initial states
-        # v0 = self.getV(expert_obs).mean()
-        v0 = 0
         _, _, _, expert_log_pi, *_ = self.policy(
             expert_obs,
             reparameterize=True,
             return_log_prob=True,
         )
+        v0_1, v0_2 = self.getV(expert_obs)
+        
         zf1_loss, zf1_loss_dict = self.zf_criterion(
             expert_z1_pred, 
             expert_target,
@@ -268,7 +239,7 @@ class IDSACTrainer(TorchIQTrainer):
             policy_target,
             policy_rewards,
             log_pi,
-            v0,
+            v0_1,
             self.bias,
             self.alpha,
             self.args,
@@ -281,17 +252,11 @@ class IDSACTrainer(TorchIQTrainer):
             policy_target,
             policy_rewards,
             log_pi,
-            v0,
+            v0_2,
             self.bias,
             self.alpha,
             self.args,
         )
-        # Monitor: OOD action values
-        # policy_z1_new, policy_z2_new = self.getZ(policy_obs, new_actions, tau_hat)
-        # policy_q1_new = torch.sum(presum_tau * policy_z1_new, dim=1, keepdims=True)
-        # policy_q2_new = torch.sum(presum_tau * policy_z2_new, dim=1, keepdims=True)
-        # q1_ood = (policy_q1_new - policy_q1_pred) / (torch.abs(policy_q1_pred) + self.EPS)
-        # q2_ood = (policy_q2_new - policy_q2_pred) / (torch.abs(policy_q2_pred) + self.EPS)
         gt.stamp('preback_zf', unique=False)
         
         self.zf1_optimizer.zero_grad()
