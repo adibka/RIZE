@@ -189,28 +189,11 @@ class IDSACTrainer(TorchIQTrainer):
         policy_actions = policy_batch['actions']
         policy_next_obs = policy_batch['next_observations']
         # Expert batch samples
-        expert_rewards = expert_batch['rewards']
         expert_terminals = expert_batch['terminals']
         expert_obs = expert_batch['observations']
         expert_actions = expert_batch['actions']
         expert_next_obs = expert_batch['next_observations']
         gt.stamp('preback_start', unique=False)
-        """
-        Update Alpha
-        """
-        new_actions, policy_mean, policy_log_std, log_pi, *_ = self.policy(
-            policy_obs,
-            reparameterize=True,
-            return_log_prob=True,
-        )
-        if self.use_automatic_entropy_tuning:
-            alpha_loss = -(self.alpha * (log_pi + self.target_entropy).detach()).mean()
-            self.alpha_optimizer.zero_grad()
-            alpha_loss.backward()
-            self.alpha_optimizer.step()
-        else:
-            alpha_loss = 0
-        gt.stamp('preback_alpha', unique=False)
         """
         Update ZF
         """
@@ -223,7 +206,12 @@ class IDSACTrainer(TorchIQTrainer):
         tau, tau_hat, presum_tau = self.get_tau(policy_obs, policy_actions, fp=self.fp)
         policy_z1_pred, policy_z2_pred = self.getZ(policy_obs, policy_actions, tau_hat, presum_tau)
         expert_z1_pred, expert_z2_pred = self.getZ(expert_obs, expert_actions, tau_hat, presum_tau)
-        
+
+        _, _, _, log_pi, *_ = self.policy(
+            policy_obs,
+            reparameterize=True,
+            return_log_prob=True,
+        )
         _, _, _, expert_log_pi, *_ = self.policy(
             expert_obs,
             reparameterize=True,
@@ -296,16 +284,26 @@ class IDSACTrainer(TorchIQTrainer):
         """
         Update Policy
         """
+        if self.args['use_policy_expert_obs']:
+            obs = torch.cat([policy_obs, expert_obs], dim=0)
+        else:
+            obs = policy_obs
+        
+        new_actions, policy_mean, policy_log_std, log_pi, *_ = self.policy(
+            obs,
+            reparameterize=True,
+            return_log_prob=True,
+        )
         risk_param = self.risk_schedule(self._n_train_steps_total)
         if self.risk_type == 'VaR':
             tau_ = ptu.ones_like(policy_rewards) * risk_param
-            q1_new_actions = self.zf1(policy_obs, new_actions, tau_)
-            q2_new_actions = self.zf2(policy_obs, new_actions, tau_)
+            q1_new_actions = self.zf1(obs, new_actions, tau_)
+            q2_new_actions = self.zf2(obs, new_actions, tau_)
         else:
             with torch.no_grad():
-                new_tau, new_tau_hat, new_presum_tau = self.get_tau(policy_obs, new_actions, fp=self.fp)
-            z1_new_actions = self.zf1(policy_obs, new_actions, new_tau_hat)
-            z2_new_actions = self.zf2(policy_obs, new_actions, new_tau_hat)
+                new_tau, new_tau_hat, new_presum_tau = self.get_tau(obs, new_actions, fp=self.fp)
+            z1_new_actions = self.zf1(obs, new_actions, new_tau_hat)
+            z2_new_actions = self.zf2(obs, new_actions, new_tau_hat)
             if self.risk_type in ['neutral', 'std']:
                 q1_new_actions = torch.sum(new_presum_tau * z1_new_actions, dim=1, keepdims=True)
                 q2_new_actions = torch.sum(new_presum_tau * z2_new_actions, dim=1, keepdims=True)
@@ -328,7 +326,18 @@ class IDSACTrainer(TorchIQTrainer):
         policy_loss.backward()
         policy_grad = ptu.fast_clip_grad_norm(self.policy.parameters(), self.clip_norm)
         self.policy_optimizer.step()
-        gt.stamp('backward_policy', unique=False)        
+        gt.stamp('backward_policy', unique=False)
+        """
+        Update Alpha
+        """
+        if self.use_automatic_entropy_tuning:
+            alpha_loss = -(self.alpha * (log_pi + self.target_entropy).detach()).mean()
+            self.alpha_optimizer.zero_grad()
+            alpha_loss.backward()
+            self.alpha_optimizer.step()
+        else:
+            alpha_loss = 0
+        gt.stamp('preback_alpha', unique=False)
         """
         Soft Updates
         """
