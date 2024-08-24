@@ -217,7 +217,11 @@ class IDSACTrainer(TorchIQTrainer):
             reparameterize=True,
             return_log_prob=True,
         )
-        v0_1, v0_2 = self.getV(expert_obs)
+        
+        if self.args["iq_kwargs"]["loss"] == "v0":
+            v0_1, v0_2 = self.getV(expert_obs)
+        else:
+            v0_1, v0_2 = None, None
         
         zf1_loss, zf1_loss_dict = self.zf_criterion(
             expert_z1_pred, 

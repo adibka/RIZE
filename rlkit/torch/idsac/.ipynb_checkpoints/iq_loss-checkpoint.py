@@ -49,7 +49,7 @@ def iq_loss(
     if iq_args['regularize']:
         td_expert = expert_reward - bias
         td_policy = policy_reward - policy_r
-        chi2_loss = iq_args['alpha'] * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
+        chi2_loss = iq_args['chi'] * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
         
     loss = expert_loss + value_loss + chi2_loss
     loss_dict = {
