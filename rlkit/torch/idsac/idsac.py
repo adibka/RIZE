@@ -382,6 +382,8 @@ class IDSACTrainer(TorchIQTrainer):
             if self.use_automatic_bias_tuning:
                 self.eval_statistics['Bias Loss'] = bias_loss.item()
                 self.eval_statistics['Bias Value'] = self.bias.item()
+            else:
+                self.eval_statistics['Bias Value'] = self.bias
             self.eval_statistics['Policy Grad Norm'] = policy_grad_norm
             self.eval_statistics['Policy Param Norm'] = policy_param_norm
             self.eval_statistics['Zf1 Grad Norm'] = zf1_grad_norm

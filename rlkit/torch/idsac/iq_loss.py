@@ -46,10 +46,18 @@ def iq_loss(
         # (1-γ)E_(ρ0)[V(s0)]
         value_loss = (1 - discount) * v0.mean()
 
-    if iq_args['regularize']:
+    if iq_args['regularize'] == 'TD_both':
         td_expert = expert_reward - bias
         td_policy = policy_reward - policy_r
         chi2_loss = iq_args['chi'] * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
+    elif iq_args['regularize'] == 'TD_expert':
+        td_expert = expert_reward - bias
+        chi2_loss = iq_args['chi'] * (torch.cat([td_expert, policy_reward], dim=-1)**2).mean()
+    elif iq_args['regularize'] == 'TD_policy':
+        td_policy = policy_reward - policy_r
+        chi2_loss = iq_args['chi'] * (torch.cat([expert_reward, td_policy], dim=-1)**2).mean()
+    elif iq_args['regularize'] == 'no_TD':
+        chi2_loss = iq_args['chi'] * (torch.cat([expert_reward, policy_reward], dim=-1)**2).mean()
         
     loss = expert_loss + value_loss + chi2_loss
     loss_dict = {
