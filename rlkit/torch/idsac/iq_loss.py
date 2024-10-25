@@ -4,7 +4,8 @@ Standalone IQ-Learn algorithm. See LICENSE for licensing terms.
 """
 import torch
 import torch.nn.functional as F
-
+import random
+# import numpy as np
 
 def iq_loss(
     expert_z_pred, 
@@ -12,14 +13,14 @@ def iq_loss(
     expert_log_pi,
     policy_z_pred, 
     policy_target,
-    policy_r,
+    env_reward,
     policy_log_pi,
     v0,
-    bias,
+    expert_lambda,
+    policy_lambda,
     alpha,
     args,
     ):
-    
     discount = args['trainer_kwargs']['discount']
     iq_args = args['iq_kwargs']
     expert_reward = expert_z_pred - expert_target
@@ -47,14 +48,20 @@ def iq_loss(
         value_loss = (1 - discount) * v0.mean()
 
     if iq_args['regularize'] == 'TD_both':
-        td_expert = expert_reward - bias
-        td_policy = policy_reward - policy_r
+        td_expert = expert_reward - expert_lambda
+        
+        # if random.random() < 0.75:
+        #     env_reward = 0.0
+
+        env_reward += 0.25 * torch.randn(env_reward.shape, device=env_reward.device)
+            
+        td_policy = policy_reward - env_reward
         chi2_loss = iq_args['chi'] * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
     elif iq_args['regularize'] == 'TD_expert':
-        td_expert = expert_reward - bias
+        td_expert = expert_reward - expert_lambda
         chi2_loss = iq_args['chi'] * (torch.cat([td_expert, policy_reward], dim=-1)**2).mean()
     elif iq_args['regularize'] == 'TD_policy':
-        td_policy = policy_reward - policy_r
+        td_policy = policy_reward - env_reward
         chi2_loss = iq_args['chi'] * (torch.cat([expert_reward, td_policy], dim=-1)**2).mean()
     elif iq_args['regularize'] == 'no_TD':
         chi2_loss = iq_args['chi'] * (torch.cat([expert_reward, policy_reward], dim=-1)**2).mean()

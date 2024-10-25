@@ -35,9 +35,12 @@ class IDSACTrainer(TorchIQTrainer):
             zf_lr=3e-4,
             tau_type='iqn',
             fp_lr=1e-5,
-            bias=10.0,
-            bias_lr=1e-3,
-            use_automatic_bias_tuning=True,
+            expert_lambda=10.0,
+            expert_lambda_lr=1e-3,
+            tune_expert_lambda=True,
+            policy_lambda=10.0,
+            policy_lambda_lr=1e-3,
+            tune_policy_lambda=True,
             num_quantiles=32,
             risk_type='neutral',
             risk_param=0.,
@@ -66,17 +69,27 @@ class IDSACTrainer(TorchIQTrainer):
         self.target_update_period = target_update_period
         self.tau_type = tau_type
         self.num_quantiles = num_quantiles
-        self.use_automatic_bias_tuning = use_automatic_bias_tuning
+        self.tune_expert_lambda = tune_expert_lambda
+        self.tune_policy_lambda = tune_policy_lambda
         self.use_automatic_entropy_tuning = use_automatic_entropy_tuning
 
-        if self.use_automatic_bias_tuning:
-            self.bias = ptu.tensor(bias, dtype=torch.float, requires_grad=True)
-            self.bias_optimizer = optimizer_class(
-                [self.bias],
-                lr=bias_lr,
+        if self.tune_expert_lambda:
+            self.expert_lambda = ptu.tensor(expert_lambda, dtype=torch.float, requires_grad=True)
+            self.expert_lambda_optimizer = optimizer_class(
+                [self.expert_lambda],
+                lr=expert_lambda_lr,
             )
         else:
-            self.bias = bias
+            self.expert_lambda = expert_lambda
+
+        if self.tune_policy_lambda:
+            self.policy_lambda = ptu.tensor(policy_lambda, dtype=torch.float, requires_grad=True)
+            self.policy_lambda_optimizer = optimizer_class(
+                [self.policy_lambda],
+                lr=policy_lambda_lr,
+            )
+        else:
+            self.policy_lambda = policy_lambda
             
         if self.use_automatic_entropy_tuning:
             if target_entropy:
@@ -232,7 +245,8 @@ class IDSACTrainer(TorchIQTrainer):
             policy_rewards,
             log_pi,
             v0_1,
-            self.bias,
+            self.expert_lambda,
+            self.policy_lambda,
             self.alpha,
             self.args,
         )
@@ -245,7 +259,8 @@ class IDSACTrainer(TorchIQTrainer):
             policy_rewards,
             log_pi,
             v0_2,
-            self.bias,
+            self.expert_lambda,
+            self.policy_lambda,
             self.alpha,
             self.args,
         )
@@ -261,16 +276,27 @@ class IDSACTrainer(TorchIQTrainer):
         self.zf2_optimizer.step()
         gt.stamp('backward_zf2', unique=False)
         """
-        Update Bias
+        Update expert_lambda
         """
-        if self.use_automatic_bias_tuning:
+        if self.tune_expert_lambda:
             implicit_reward = (expert_z1_pred + expert_z2_pred)/2 - expert_target
-            bias_loss = 0.5 * ((implicit_reward.detach() - self.bias)**2).mean()
-            self.bias_optimizer.zero_grad()
-            bias_loss.backward()
-            self.bias_optimizer.step()
+            expert_lambda_loss = 0.5 * ((implicit_reward.detach() - self.expert_lambda)**2).mean()
+            self.expert_lambda_optimizer.zero_grad()
+            expert_lambda_loss.backward()
+            self.expert_lambda_optimizer.step()
         else:
-            bias_loss = 0.
+            expert_lambda_loss = 0.
+        """
+        Update policy_lambda
+        """
+        if self.tune_policy_lambda:
+            implicit_reward = (policy_z1_pred + policy_z2_pred)/2 - policy_target
+            policy_lambda_loss = 0.5 * ((implicit_reward.detach() - self.policy_lambda)**2).mean()
+            self.policy_lambda_optimizer.zero_grad()
+            policy_lambda_loss.backward()
+            self.policy_lambda_optimizer.step()
+        else:
+            policy_lambda_loss = 0.
         """
         Update FP
         """
@@ -379,11 +405,16 @@ class IDSACTrainer(TorchIQTrainer):
             self.eval_statistics['ZF CHI2 Term'] = \
                         (zf1_loss_dict['chi2_loss'] + zf2_loss_dict['chi2_loss']) / 2
             self.eval_statistics['Policy Loss'] = policy_loss.item()
-            if self.use_automatic_bias_tuning:
-                self.eval_statistics['Bias Loss'] = bias_loss.item()
-                self.eval_statistics['Bias Value'] = self.bias.item()
+            if self.tune_expert_lambda:
+                self.eval_statistics['expert_lambda Loss'] = expert_lambda_loss.item()
+                self.eval_statistics['expert_lambda Value'] = self.expert_lambda.item()
             else:
-                self.eval_statistics['Bias Value'] = self.bias
+                self.eval_statistics['expert_lambda Value'] = self.expert_lambda
+            if self.tune_policy_lambda:
+                self.eval_statistics['policy_lambda Loss'] = policy_lambda_loss.item()
+                self.eval_statistics['policy_lambda Value'] = self.policy_lambda.item()
+            else:
+                self.eval_statistics['policy_lambda Value'] = self.policy_lambda
             self.eval_statistics['Policy Grad Norm'] = policy_grad_norm
             self.eval_statistics['Policy Param Norm'] = policy_param_norm
             self.eval_statistics['Zf1 Grad Norm'] = zf1_grad_norm

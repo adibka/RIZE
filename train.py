@@ -147,7 +147,6 @@ if __name__ == "__main__":
     parser.add_argument("--alpha", type=float)
     parser.add_argument("--loss", type=str)
     parser.add_argument("--seed", type=int)
-    parser.add_argument("--bias", type=int)
     args = parser.parse_args()
 
     with open(f'configs/{args.env}.yaml', 'r', encoding="utf-8") as f:
@@ -155,7 +154,6 @@ if __name__ == "__main__":
     variant["iq_kwargs"]["demos"] = args.demos
     variant["iq_kwargs"]["loss"] = args.loss
     variant["trainer_kwargs"]["alpha"] = args.alpha
-    variant["trainer_kwargs"]["bias"] = args.bias
     variant["seed"] = args.seed
     
     if torch.cuda.is_available():
