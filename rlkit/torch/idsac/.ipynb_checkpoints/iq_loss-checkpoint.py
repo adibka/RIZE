@@ -49,12 +49,16 @@ def iq_loss(
 
     if iq_args['regularize'] == 'TD_both':
         td_expert = expert_reward - expert_lambda
-        
-        # if random.random() < 0.75:
-        #     env_reward = 0.0
 
-        env_reward += 0.25 * torch.randn(env_reward.shape, device=env_reward.device)
-            
+        if iq_args['reward_type'] == 'noisy':
+            env_reward += 0.75 * torch.randn(env_reward.shape, device=env_reward.device)
+        elif iq_args['reward_type'] == 'sparse' and random.random() < iq_args['sparse_prob']:
+            if iq_args['sparse_type'] == 'empty':
+                env_reward = 0.0
+            elif iq_args['sparse_type'] == 'random':
+                env_reward = torch.clamp(2.5 + torch.randn(env_reward.shape, device=env_reward.device), min=0, max=5)
+            else:
+                raise ValueError('Sparse type should either be random or empty!')
         td_policy = policy_reward - env_reward
         chi2_loss = iq_args['chi'] * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()
     elif iq_args['regularize'] == 'TD_expert':
