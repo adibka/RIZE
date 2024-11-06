@@ -132,7 +132,9 @@ dmypy.json
 experts/
 data/
 data-oldy/
+data-oldy2/
 configs/
 results/
+results-oldy/
 extra/
 
