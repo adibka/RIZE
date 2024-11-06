@@ -1,0 +1,44 @@
+algorithm_kwargs:
+  batch_size: 256
+  max_path_length: 1000
+  min_num_steps_before_training: 10000
+  num_epochs: 60
+  num_eval_paths_per_epoch: 10
+  num_expl_steps_per_train_loop: 5000
+  num_trains_per_train_loop: 5000
+iq_kwargs:
+  demos: 1
+  regularize: 'TD_both'
+  loss: value
+  chi: 0.5
+  expert_path: 'experts/HalfCheetah-v2_25.pkl'
+  subsample_freq: 1
+  reward_type: 'noise'
+  noise_std: 1.0
+  sparse_prob: 0.5
+  sparse_type: 'empty'
+env: HalfCheetah-v2
+seed: 0
+expectation_z: true
+use_policy_expert_obs: false
+eval_env_num: 10
+expl_env_num: 10
+layer_size: 256
+num_quantiles: 24
+replay_buffer_size: 1000000
+trainer_kwargs:
+  alpha: 0.01
+  discount: 0.99
+  policy_lr: 0.00005
+  soft_target_tau: 0.005
+  target_update_period: 1
+  tau_type: iqn
+  use_automatic_entropy_tuning: false
+  zf_lr: 0.0003
+  expert_lambda: 10
+  expert_lambda_lr: 0.0001
+  tune_expert_lambda: true
+  policy_lambda: 5
+  policy_lambda_lr: 0.0001
+  tune_policy_lambda: false
+version: normal-iqn-neutral
