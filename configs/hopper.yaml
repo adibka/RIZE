@@ -13,10 +13,10 @@ iq_kwargs:
   chi: 0.5
   expert_path: 'experts/Hopper-v2_25.pkl'
   subsample_freq: 1
-  reward_type: 'noise'
+  reward_type: 'sparse'
   noise_std: 1.0
   sparse_prob: 0.5
-  sparse_type: 'empty'
+  sparse_type: 'random'
 env: Hopper-v2
 seed: 0
 expectation_z: true
