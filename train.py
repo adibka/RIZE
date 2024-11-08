@@ -145,6 +145,7 @@ if __name__ == "__main__":
     parser.add_argument("--env", type=str)
     parser.add_argument("--alpha", type=float)
     parser.add_argument("--loss", type=str)
+    parser.add_argument("--regularize", type=str)
     parser.add_argument("--reward_type", type=str)
     parser.add_argument("--sparse_type", type=str)
     parser.add_argument("--noise_std", type=float)
@@ -158,6 +159,7 @@ if __name__ == "__main__":
     variant["trainer_kwargs"]["alpha"] = args.alpha
     variant["seed"] = args.seed
     variant["iq_kwargs"]["loss"] = args.loss
+    variant["iq_kwargs"]["regularize"] = args.regularize
     variant["iq_kwargs"]["reward_type"] = args.reward_type
     variant["iq_kwargs"]["sparse_type"] = args.sparse_type
     variant["iq_kwargs"]["noise_std"] = args.noise_std
