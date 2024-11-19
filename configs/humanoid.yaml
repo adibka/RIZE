@@ -7,13 +7,13 @@ algorithm_kwargs:
   num_expl_steps_per_train_loop: 5000
   num_trains_per_train_loop: 5000
 iq_kwargs:
-  demos: 1
+  demos: 0.256
   regularize: 'TD_both'
   loss: value
   chi: 0.5
   expert_path: 'experts/Humanoid-v2_25.pkl'
   subsample_freq: 1
-  reward_type: 'noise'
+  reward_type: 'sparse'
   noise_std: 1.0
   sparse_prob: 0.5
   sparse_type: 'empty'

@@ -35,6 +35,9 @@ class ExpertDataset(Dataset):
             subsample_frequency:      Subsamples each trajectory at specified frequency of steps.
             deterministic:            If true, sample determinstic expert trajectories.
         """
+        if num_trajectories < 1:
+            num_trajectories = 1
+            
         all_trajectories = load_trajectories(expert_location, num_trajectories, seed)
         self.trajectories = {}
 

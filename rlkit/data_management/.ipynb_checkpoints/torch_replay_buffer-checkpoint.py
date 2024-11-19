@@ -49,10 +49,20 @@ class TorchReplayBuffer(ReplayBuffer):
 
     def load(self, path, num_trajs, sample_freq, seed):
         data = ExpertDataset(path, num_trajs, sample_freq, seed)
-        
-        for i in range(len(data)):
-            observation, next_observation, action, reward, terminal = data[i]
-            self.add_sample(observation, action, reward, next_observation, terminal, {})
+
+        if num_trajs < 1:
+            # rng = np.random.RandomState(seed)
+            # perm = rng.permutation(np.arange(1000))
+            num_samples = int(num_trajs * 1000)
+            # idx = perm[:num_samples]
+            idx = np.arange(num_samples)
+            for i in idx:
+                observation, next_observation, action, reward, terminal = data[i]
+                self.add_sample(observation, action, reward, next_observation, terminal, {})
+        else:
+            for i in range(len(data)):
+                observation, next_observation, action, reward, terminal = data[i]
+                self.add_sample(observation, action, reward, next_observation, terminal, {})
 
     def add_sample(self, observation, action, reward, next_observation, terminal, env_info, **kwargs):
         self._observations[self._top] = torch.from_numpy(observation)
