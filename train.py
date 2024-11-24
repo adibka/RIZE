@@ -18,7 +18,6 @@ from rlkit.torch.torch_iq_algorithm import TorchVecOnlineIQAlgorithm
 torch.set_num_threads(4)
 torch.set_num_interop_threads(4)
 
-
 """
 Define experiment
 """
@@ -135,7 +134,6 @@ def experiment(variant):
     algorithm.to(ptu.device)
     algorithm.train()
 
-
 """
 Main
 """
@@ -174,4 +172,3 @@ if __name__ == "__main__":
     variant["device"] = ptu.device
     
     experiment(variant)
-    

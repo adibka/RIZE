@@ -7,7 +7,7 @@ algorithm_kwargs:
   num_expl_steps_per_train_loop: 5000
   num_trains_per_train_loop: 5000
 iq_kwargs:
-  demos: 0.256
+  demos: 1
   regularize: 'TD_both'
   loss: value
   chi: 0.5
