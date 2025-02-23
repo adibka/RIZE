@@ -131,10 +131,7 @@ dmypy.json
 # Ignored folders
 experts/
 data/
-data-oldy/
-data-oldy2/
 results/
-results-oldy/
 extra/
 simorgh/
 

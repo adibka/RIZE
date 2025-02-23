@@ -37,10 +37,10 @@ class IDSACTrainer(TorchIQTrainer):
             fp_lr=1e-5,
             expert_lambda=10.0,
             expert_lambda_lr=1e-3,
-            tune_expert_lambda=True,
+            tune_expert_lambda=False,
             policy_lambda=10.0,
             policy_lambda_lr=1e-3,
-            tune_policy_lambda=True,
+            tune_policy_lambda=False,
             num_quantiles=32,
             risk_type='neutral',
             risk_param=0.,
@@ -52,8 +52,6 @@ class IDSACTrainer(TorchIQTrainer):
             clip_norm=0.,
             use_automatic_entropy_tuning=False,
             target_entropy=None,
-            dropout=False,
-            drop_rate=0.01,
     ):
         super().__init__()
         self.args = args
@@ -145,7 +143,7 @@ class IDSACTrainer(TorchIQTrainer):
             if fp is None:
                 fp = self.fp
             presum_tau = fp(obs, actions)
-        tau = torch.cumsum(presum_tau, dim=1)  # (N, T), note that they are tau1...tauN in the paper
+        tau = torch.cumsum(presum_tau, dim=1)  # (N, T)
         with torch.no_grad():
             tau_hat = ptu.zeros_like(tau)
             tau_hat[:, 0:1] = tau[:, 0:1] / 2.
@@ -167,7 +165,9 @@ class IDSACTrainer(TorchIQTrainer):
         target_z2 = self.target_zf2(next_obs, next_actions, next_tau_hat)
         target_z = torch.min(target_z1, target_z2)
         if self.args['expectation_z']:
-            target_q = torch.sum(next_presum_tau * target_z, dim=1, keepdims=True)
+            target_q1 = torch.sum(next_presum_tau * target_z1, dim=1, keepdims=True)
+            target_q2 = torch.sum(next_presum_tau * target_z2, dim=1, keepdims=True)
+            target_q = torch.min(target_q1, target_q2)
             return target_q
         else:
             return target_z
@@ -191,6 +191,7 @@ class IDSACTrainer(TorchIQTrainer):
             return_log_prob=True,
         )
         next_tau, next_tau_hat, next_presum_tau = self.get_tau(next_obs, next_actions, fp=self.target_fp)
+        target_v = self.get_targetZ(next_obs, next_actions, next_tau_hat, next_presum_tau)
         target_v = self.get_targetZ(next_obs, next_actions, next_tau_hat, next_presum_tau) - self.alpha * next_log_pi
         return target_v
 
@@ -242,7 +243,6 @@ class IDSACTrainer(TorchIQTrainer):
             expert_log_pi,
             policy_z1_pred, 
             policy_target,
-            policy_rewards,
             log_pi,
             v0_1,
             self.expert_lambda,
@@ -256,7 +256,6 @@ class IDSACTrainer(TorchIQTrainer):
             expert_log_pi,
             policy_z2_pred, 
             policy_target,
-            policy_rewards,
             log_pi,
             v0_2,
             self.expert_lambda,
@@ -279,8 +278,8 @@ class IDSACTrainer(TorchIQTrainer):
         Update expert_lambda
         """
         if self.tune_expert_lambda:
-            implicit_reward = (expert_z1_pred + expert_z2_pred)/2 - expert_target
-            expert_lambda_loss = 0.5 * ((implicit_reward.detach() - self.expert_lambda)**2).mean()
+            e_implicit_reward = (expert_z1_pred + expert_z2_pred)/2 - expert_target
+            expert_lambda_loss = 0.5 * ((e_implicit_reward.detach() - self.expert_lambda)**2).mean()
             self.expert_lambda_optimizer.zero_grad()
             expert_lambda_loss.backward()
             self.expert_lambda_optimizer.step()
@@ -290,8 +289,8 @@ class IDSACTrainer(TorchIQTrainer):
         Update policy_lambda
         """
         if self.tune_policy_lambda:
-            implicit_reward = (policy_z1_pred + policy_z2_pred)/2 - policy_target
-            policy_lambda_loss = 0.5 * ((implicit_reward.detach() - self.policy_lambda)**2).mean()
+            p_implicit_reward = (policy_z1_pred + policy_z2_pred)/2 - policy_target
+            policy_lambda_loss = 0.5 * ((p_implicit_reward.detach() - self.policy_lambda)**2).mean()
             self.policy_lambda_optimizer.zero_grad()
             policy_lambda_loss.backward()
             self.policy_lambda_optimizer.step()
@@ -507,23 +506,3 @@ class IDSACTrainer(TorchIQTrainer):
             snapshot['fp'] = self.fp.state_dict()
             snapshot['target_fp'] = self.target_fp.state_dict()
         return snapshot
-
-    """For CQL style Training"""
-    def _get_tensor_values(self, obs, actions, tau):
-        actions_batch_size = actions.shape[0]
-        obs_batch_size = obs.shape[0]
-        num_repeat = int(actions_batch_size / obs_batch_size)
-        obs_temp = obs.unsqueeze(1).repeat(1, num_repeat, 1).view(obs.shape[0] * num_repeat, obs.shape[1])
-        tau_temp = tau.unsqueeze(1).repeat(1, num_repeat, 1).view(tau.shape[0] * num_repeat, tau.shape[1])
-    
-        z1_pred = self.zf1(obs_temp, actions, tau_temp)
-        z2_pred = self.zf2(obs_temp, actions, tau_temp)
-        z1_pred = z1_pred.view(obs.shape[0], num_repeat, -1)
-        z2_pred = z2_pred.view(obs.shape[0], num_repeat, -1)
-        return z1_pred, z2_pred
-    
-    """For CQL style Training"""
-    def _get_policy_actions(self, obs, num_actions, network=None):
-        obs_temp = obs.unsqueeze(1).repeat(1, num_actions, 1).view(obs.shape[0] * num_actions, obs.shape[1])
-        new_actions, _, _, log_pi, *_ = network(obs_temp, reparameterize=True, return_log_prob=True,)
-        return new_actions.detach(), log_pi.view(obs.shape[0], num_actions, 1).detach()

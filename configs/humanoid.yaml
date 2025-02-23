@@ -7,16 +7,12 @@ algorithm_kwargs:
   num_expl_steps_per_train_loop: 5000
   num_trains_per_train_loop: 5000
 iq_kwargs:
-  demos: 1
+  demos: 3
   regularize: 'TD_both'
-  loss: value
+  loss: v0
   chi: 0.5
   expert_path: 'experts/Humanoid-v2_25.pkl'
   subsample_freq: 1
-  reward_type: 'sparse'
-  noise_std: 1.0
-  sparse_prob: 0.5
-  sparse_type: 'empty'
 env: Humanoid-v2
 seed: 0
 expectation_z: true
@@ -27,7 +23,7 @@ layer_size: 256
 num_quantiles: 24
 replay_buffer_size: 1000000
 trainer_kwargs:
-  alpha: 0.2
+  alpha: 0.05
   discount: 0.99
   policy_lr: 0.00001
   soft_target_tau: 0.005
@@ -39,6 +35,6 @@ trainer_kwargs:
   expert_lambda_lr: 0.0001
   tune_expert_lambda: true
   policy_lambda: 5
-  policy_lambda_lr: 0.0001
-  tune_policy_lambda: false
+  policy_lambda_lr: 0.00005
+  tune_policy_lambda: true
 version: normal-iqn-neutral

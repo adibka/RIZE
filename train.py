@@ -141,27 +141,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     parser.add_argument("--env", type=str)
-    parser.add_argument("--alpha", type=float)
-    parser.add_argument("--loss", type=str)
-    parser.add_argument("--regularize", type=str)
-    parser.add_argument("--reward_type", type=str)
-    parser.add_argument("--sparse_type", type=str)
-    parser.add_argument("--noise_std", type=float)
-    parser.add_argument("--sparse_prob", type=float)
     parser.add_argument("--seed", type=int)
     args = parser.parse_args()
 
     with open(f'configs/{args.env}.yaml', 'r', encoding="utf-8") as f:
         variant = yaml.load(f, Loader=yaml.FullLoader)
-        
-    variant["trainer_kwargs"]["alpha"] = args.alpha
+
     variant["seed"] = args.seed
-    variant["iq_kwargs"]["loss"] = args.loss
-    variant["iq_kwargs"]["regularize"] = args.regularize
-    variant["iq_kwargs"]["reward_type"] = args.reward_type
-    variant["iq_kwargs"]["sparse_type"] = args.sparse_type
-    variant["iq_kwargs"]["noise_std"] = args.noise_std
-    variant["iq_kwargs"]["sparse_prob"] = args.sparse_prob
     
     if torch.cuda.is_available():
         ptu.set_gpu_mode(True, 0)
