@@ -1,0 +1,8 @@
+Cython==0.29.37
+gym==0.17.1
+tensorboard
+torch
+tornado==5.1.1
+tqdm==4.42.1
+mujoco_py==2.0.2
+gtimer

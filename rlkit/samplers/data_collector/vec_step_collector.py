@@ -47,12 +47,6 @@ class VecMdpStepCollector(DataCollector):
             ('num steps total', self._num_steps_total),
             ('num paths total', self._num_paths_total),
         ])
-        # path_lens = [len(path['actions']) for path in self._epoch_paths]
-        # stats.update(create_stats_ordered_dict(
-        #     "path length",
-        #     path_lens,
-        #     always_show_all_stats=True,
-        # ))
         return stats
 
     def get_snapshot(self):

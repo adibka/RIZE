@@ -9,13 +9,12 @@ from torch.nn import functional as F
 import rlkit.torch.pytorch_util as ptu
 from rlkit.core.eval_util import create_stats_ordered_dict
 from rlkit.torch.torch_iq_algorithm import TorchIQTrainer
-from rlkit.torch.idsac.iq_loss import iq_loss
+from rlkit.torch.rize.iq_loss import iq_loss
 from .risk import distortion_de
 from .utils import LinearSchedule
 
 
-class IDSACTrainer(TorchIQTrainer):
-
+class RIZETrainer(TorchIQTrainer):
     def __init__(
             self,
             args,
@@ -437,16 +436,6 @@ class IDSACTrainer(TorchIQTrainer):
                 'Z Policy Targets',
                 ptu.get_numpy(policy_target),
             ))
-            # self.eval_statistics.update(create_stats_ordered_dict(
-            #     'Q1 OOD',
-            #     ptu.get_numpy(q1_ood),
-            #     exclude_max_min=True,
-            # ))
-            # self.eval_statistics.update(create_stats_ordered_dict(
-            #     'Q2 OOD',
-            #     ptu.get_numpy(q2_ood),
-            #     exclude_max_min=True,
-            # ))
             self.eval_statistics.update(create_stats_ordered_dict(
                 'Log Pis',
                 ptu.get_numpy(log_pi),

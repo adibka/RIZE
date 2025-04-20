@@ -6,7 +6,7 @@ from rlkit.core.eval_util import create_stats_ordered_dict
 from rlkit.data_management.path_builder import PathBuilder
 from rlkit.envs.vecenv import BaseVectorEnv
 from rlkit.samplers.data_collector.base import DataCollector
-from rlkit.torch.idsac.utils import get_tau
+from rlkit.torch.rize.utils import get_tau
 
 class VecMdpPathCollector(DataCollector):
 
@@ -14,8 +14,6 @@ class VecMdpPathCollector(DataCollector):
             self,
             env: BaseVectorEnv,
             policy,
-            zf,
-            tau_type,
             max_num_epoch_paths_saved=None,
             render=False,
             render_kwargs=None,
@@ -33,11 +31,6 @@ class VecMdpPathCollector(DataCollector):
         self._num_steps_total = 0
         self._num_paths_total = 0
         self._obs = None  # cache variable
-
-        # Estimation Bias
-        self._zf = zf
-        self.num_quantiles = zf.num_quantiles
-        self.tau_type = tau_type
 
     def get_epoch_paths(self):
         return self._epoch_paths
@@ -79,11 +72,7 @@ class VecMdpPathCollector(DataCollector):
 
             actions = self._policy.get_actions(self._obs)
             next_obs, rewards, terminals, env_infos = self._env.step(actions)
-            # Monitor: Estmation Bias
-            tau, tau_hat, presum_tau = get_tau(self._obs, actions, self.tau_type, self.num_quantiles)
-            z_values = self._zf.get_values(self._obs, actions, tau_hat)
-            q_values = np.sum(presum_tau * z_values, axis=1, keepdims=True)
-
+            
             if self._render:
                 self._env.render(**self._render_kwargs)
 
@@ -103,7 +92,6 @@ class VecMdpPathCollector(DataCollector):
                     rewards,
                     terminals,
                     env_infos,
-                    q_values,
             )):
                 obs = self._obs[env_idx].copy()
                 terminal = np.array([terminal])
@@ -115,7 +103,7 @@ class VecMdpPathCollector(DataCollector):
                     rewards=reward,
                     next_observations=next_ob,
                     terminals=terminal,
-                    agent_infos= q_value,  # policy.get_actions doesn't return agent_info
+                    agent_infos= q_value,
                     env_infos=env_info,
                 )
                 self._obs[env_idx] = next_ob

@@ -10,8 +10,8 @@ from rlkit.envs import make_env
 from rlkit.envs.vecenv import SubprocVectorEnv, VectorEnv
 from rlkit.launchers.launcher_util import set_seed, setup_logger
 from rlkit.samplers.data_collector import (VecMdpPathCollector, VecMdpStepCollector)
-from rlkit.torch.idsac.idsac import IDSACTrainer
-from rlkit.torch.idsac.networks import QuantileMlp, Critic, softmax
+from rlkit.torch.rize.rize import RIZETrainer
+from rlkit.torch.rize.networks import QuantileMlp, Critic, softmax
 from rlkit.torch.networks import FlattenMlp
 from rlkit.torch.sac.policies import MakeDeterministic, TanhGaussianPolicy
 from rlkit.torch.torch_iq_algorithm import TorchVecOnlineIQAlgorithm
@@ -33,7 +33,6 @@ def experiment(variant):
 
     M = variant["layer_size"]
     num_quantiles = variant["num_quantiles"]
-    tau_type = variant["trainer_kwargs"]["tau_type"]
     
     zf1 = QuantileMlp(
         input_size=obs_dim + action_dim,
@@ -88,8 +87,6 @@ def experiment(variant):
     eval_path_collector = VecMdpPathCollector(
         eval_env,
         eval_policy,
-        zf1,
-        tau_type,
     )
     expl_path_collector = VecMdpStepCollector(
         expl_env,
@@ -107,7 +104,7 @@ def experiment(variant):
     expert_buffer.load(iq_args['expert_path'], iq_args['demos'], 
                        iq_args['subsample_freq'], variant['seed']
                       )
-    trainer = IDSACTrainer(
+    trainer = RIZETrainer(
         args=variant,
         env=dummy_env,
         policy=policy,
@@ -139,7 +136,6 @@ Main
 """
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    
     parser.add_argument("--env", type=str)
     parser.add_argument("--seed", type=int)
     args = parser.parse_args()

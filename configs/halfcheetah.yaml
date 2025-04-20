@@ -7,7 +7,7 @@ algorithm_kwargs:
   num_expl_steps_per_train_loop: 5000
   num_trains_per_train_loop: 5000
 iq_kwargs:
-  demos: 10
+  demos: 3
   regularize: 'TD_both'
   loss: value
   chi: 0.1
@@ -23,7 +23,7 @@ layer_size: 256
 num_quantiles: 24
 replay_buffer_size: 1000000
 trainer_kwargs:
-  alpha: 0.1
+  alpha: 0.05
   discount: 0.99
   policy_lr: 0.00005
   soft_target_tau: 0.005
@@ -35,6 +35,6 @@ trainer_kwargs:
   expert_lambda_lr: 0.0001
   tune_expert_lambda: true
   policy_lambda: 5
-  policy_lambda_lr: 0.0001
+  policy_lambda_lr: 0.00001
   tune_policy_lambda: true
 version: normal-iqn-neutral
