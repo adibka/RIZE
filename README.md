@@ -31,13 +31,13 @@ python train.py --env halfcheetah --seed 0
 Below are main results from our experiments:
 
 <p align="center">
-  <img src="images/bar.png" alt="Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks." width="600"/>
+  <img src="images/bar.png" alt="Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks." width="750"/>
 </p>
 <p align="center"><em>Figure: Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks. We depict the sorted top 25% episodic returns across five seeds to evaluate convergence to expert-level behavior. We evaluate with three and ten expert trajectories.</em></p>
 
 
 <p align="center">
-  <img src="images/main_curves_demo3&10.png" alt="Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks." width="600"/>
+  <img src="images/main_curves_demo3&10.png" alt="Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks." width="750"/>
 </p>
 <p align="center"><em>Figure: Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks. n
 denotes the number of expert trajectories.</em></p>
