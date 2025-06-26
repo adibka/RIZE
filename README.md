@@ -4,7 +4,7 @@
 
 ## 📖 Summary
 
-*RIZE* is a novel inverse reinforcement learning method that enhances ***Maximum Entropy IRL*** by incorporating a squared temporal-difference regularizer with adaptive, dynamically evolving targets, enabling more stable and flexible reward learning. It integrates distributional reinforcement learning to capture richer return distributions, improving value function representation. ***RIZE*** achieves state-of-the-art results on challenging continuous control benchmarks in ***MuJoCo***, including expert-level performance on the ***Humanoid*** task with only three demonstrations.
+*RIZE* is a novel inverse reinforcement learning method that enhances implicit reward inverse RL by incorporating a squared temporal-difference regularizer with dynamically evolving targets, enabling more stable and flexible reward learning. It integrates distributional RL to capture richer return distributions, improving value function representation. ***RIZE*** achieves state-of-the-art results on challenging continuous control benchmarks in ***MuJoCo***, including expert-level performance on the ***Humanoid*** task with only three demonstrations.
 
 ---
 
