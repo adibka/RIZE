@@ -47,6 +47,13 @@ def iq_loss(
 
     td_expert = expert_reward - expert_lambda
     td_policy = policy_reward - policy_lambda
+
+    # with torch.no_grad():
+    #     expert_avg_r = expert_reward.mean()
+    #     policy_avg_r = policy_reward.mean()
+
+    # td_expert = expert_reward - expert_avg_r
+    # td_policy = policy_reward - policy_avg_r
     
     if iq_args['regularize'] == 'TD_both':
         chi2_loss = iq_args['chi'] * (torch.cat([td_expert, td_policy], dim=-1)**2).mean()

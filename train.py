@@ -11,7 +11,7 @@ from rlkit.envs.vecenv import SubprocVectorEnv, VectorEnv
 from rlkit.launchers.launcher_util import set_seed, setup_logger
 from rlkit.samplers.data_collector import (VecMdpPathCollector, VecMdpStepCollector)
 from rlkit.torch.rize.rize import RIZETrainer
-from rlkit.torch.rize.networks import QuantileMlp, Critic, softmax
+from rlkit.torch.rize.networks import QuantileMlp, softmax
 from rlkit.torch.networks import FlattenMlp
 from rlkit.torch.sac.policies import MakeDeterministic, TanhGaussianPolicy
 from rlkit.torch.torch_iq_algorithm import TorchVecOnlineIQAlgorithm

@@ -17,35 +17,10 @@ def get_generic_path_information(paths, stat_prefix=''):
     statistics = OrderedDict()
     returns = [sum(path["rewards"]) for path in paths]
     rewards = np.vstack([path["rewards"] for path in paths])
-    q_values = np.vstack([path["agent_infos"] for path in paths])
-    
     statistics.update(create_stats_ordered_dict('Rewards', rewards,
                                                 stat_prefix=stat_prefix))
     statistics.update(create_stats_ordered_dict('Returns', returns,
                                                 stat_prefix=stat_prefix))
-    mc_returns = np.zeros_like(q_values)
-    for path in paths:
-        rewards = np.concatenate(path['rewards'])
-        returns = []
-        s = 0
-        for rew in rewards[::-1]:
-            s = s * 0.99 + rew
-            returns.append(s)
-        mc_returns[:len(rewards), 0] = np.array(returns)[::-1]
-    
-    bias = q_values - mc_returns
-    statistics.update(create_stats_ordered_dict('Estimation Bias', 
-                                                bias,
-                                                stat_prefix=stat_prefix,
-                                                exclude_max_min=True,))
-    statistics.update(create_stats_ordered_dict('EB/Q_True', 
-                                                mc_returns,
-                                                stat_prefix=stat_prefix,
-                                                exclude_max_min=True,))
-    statistics.update(create_stats_ordered_dict('EB/Q_Pred', 
-                                                q_values,
-                                                stat_prefix=stat_prefix,
-                                                exclude_max_min=True,))
     statistics['Num Paths'] = len(paths)
     statistics[stat_prefix + 'Average Returns'] = get_average_returns(paths)
     
@@ -56,7 +31,33 @@ def get_generic_path_information(paths, stat_prefix=''):
         actions = np.vstack([path["actions"] for path in paths])
     statistics.update(create_stats_ordered_dict(
         'Actions', actions, stat_prefix=stat_prefix
-    ))
+    ))    
+    
+    # q_values = np.vstack([path["agent_infos"] for path in paths])
+    # mc_returns = np.zeros_like(q_values)
+    # for path in paths:
+    #     rewards = np.concatenate(path['rewards'])
+    #     returns = []
+    #     s = 0
+    #     for rew in rewards[::-1]:
+    #         s = s * 0.99 + rew
+    #         returns.append(s)
+    #     mc_returns[:len(rewards), 0] = np.array(returns)[::-1]
+    
+    # bias = q_values - mc_returns
+    # statistics.update(create_stats_ordered_dict('Estimation Bias', 
+    #                                             bias,
+    #                                             stat_prefix=stat_prefix,
+    #                                             exclude_max_min=True,))
+    # statistics.update(create_stats_ordered_dict('EB/Q_True', 
+    #                                             mc_returns,
+    #                                             stat_prefix=stat_prefix,
+    #                                             exclude_max_min=True,))
+    # statistics.update(create_stats_ordered_dict('EB/Q_Pred', 
+    #                                             q_values,
+    #                                             stat_prefix=stat_prefix,
+    #                                             exclude_max_min=True,))
+
     
     # rlkit path info
     # for info_key in ['agent_infos']:

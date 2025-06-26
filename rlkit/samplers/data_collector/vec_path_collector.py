@@ -84,7 +84,6 @@ class VecMdpPathCollector(DataCollector):
                     reward,
                     terminal,
                     env_info,
-                    q_value,
             ) in enumerate(zip(
                     self._current_path_builders,
                     next_obs,
@@ -103,7 +102,7 @@ class VecMdpPathCollector(DataCollector):
                     rewards=reward,
                     next_observations=next_ob,
                     terminals=terminal,
-                    agent_infos= q_value,
+                    agent_infos={},
                     env_infos=env_info,
                 )
                 self._obs[env_idx] = next_ob
