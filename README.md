@@ -1,4 +1,4 @@
-# 🚀 **RIZE**: ***Regularized Implicit Reward Inverse Reinforcement Learning via Distributional RL***
+# 🚀 **RIZE**: ***Regularized Imitation Learning via Distributional Reinforcement Learning***
 
 ---
 
