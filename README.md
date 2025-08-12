@@ -1,10 +1,14 @@
-# 🚀 **RIZE**: ***Regularized Imitation Learning via Distributional Reinforcement Learning***
+# 🚀 **RIZE**: ***Regularized Implicit Reward Inverse Reinforcement Learning via Distributional RL***
 
 ---
 
 ## 📖 Summary
 
-*RIZE* is a novel inverse reinforcement learning method that enhances implicit reward inverse RL by incorporating a squared temporal-difference regularizer with dynamically evolving targets, enabling more stable and flexible reward learning. It integrates distributional RL to capture richer return distributions, improving value function representation. ***RIZE*** achieves state-of-the-art results on challenging continuous control benchmarks in ***MuJoCo***, including expert-level performance on the ***Humanoid*** task with only three demonstrations.
+RIZE is a non-adversarial inverse reinforcement learning framework that unifies implicit reward regularization with distributional reinforcement learning. It extends IQ-Learn and LS-IQ by replacing fixed implicit reward targets with adaptive, learnable targets that evolve during training, constraining rewards to improve stability and prevent divergence.
+
+To capture richer return information, RIZE trains quantile-based distributional critics and uses their expectations for policy updates—preserving theoretical guarantees while improving robustness in high-dimensional control. This combination yields bounded critic values, more stable policy optimization, and better sample efficiency.
+
+On MuJoCo benchmarks, RIZE consistently outperforms strong baselines, achieving expert-level Humanoid performance with only three demonstrations—a setting where all baselines fail. Extensive ablations confirm that both adaptive regularization and distributional value functions are essential for its gains.
 
 ---
 
@@ -19,29 +23,11 @@
 
 ## ▶️ Usage
 
-To reproduce the results from our paper for **HalfCheetah-v2** with **Seed 0**, run:
+To reproduce the results from our paper for HalfCheetah-v2 with Seed 0, run:
 
 ```bash
 python train.py --env halfcheetah --seed 0
 ```
----
-
-## 📊 Results
-
-Below are main results from our experiments:
-
-<p align="center">
-  <img src="images/bar.png" alt="Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks." width="600"/>
-</p>
-<p align="center"><em>Figure: Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks. We depict the sorted top 25% episodic returns across five seeds to evaluate convergence to expert-level behavior. We evaluate with three and ten expert trajectories.</em></p>
-
-
-<p align="center">
-  <img src="images/main_curves_demo3&10.png" alt="Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks." width="600"/>
-</p>
-<p align="center"><em>Figure: Normalized return of RIZE vs. online imitation learning baselines on Gym MuJoCo tasks. n
-denotes the number of expert trajectories.</em></p>
-
 ---
 
 ## 🙏 Acknowledgements
