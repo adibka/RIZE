@@ -15,9 +15,23 @@ On MuJoCo benchmarks, RIZE consistently outperforms strong baselines, achieving 
 ## ⚙️ Installation
 
    ```bash
+   # 1) Clone the repo
+   git clone https://github.com/adibka/RIZE.git
+   cd RIZE
+   
+   # 2) (Optional) create & activate a venv
    python -m venv venv
    source venv/bin/activate
+   
+   # 3) Install dependencies 
    pip install -r requirements.txt
+   pip install gdown
+   
+   # 4) Download experts.zip
+   gdown --fuzzy "https://drive.google.com/file/d/1q-Mc0TuUBjkqPx564m4_3RxzJv0PoWIm/view?usp=sharing" -O experts.zip
+   
+   # 5) Unzip into the repo root 
+   unzip -o experts.zip
    ```
 ---
 
