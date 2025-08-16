@@ -1,4 +1,5 @@
 # 🚀 **RIZE**: ***Regularized Imitation Learning via Distributional Reinforcement Learning***
+[Paper on arXiv](https://arxiv.org/abs/2502.20089)
 
 ---
 
