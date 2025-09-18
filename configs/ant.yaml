@@ -34,7 +34,7 @@ trainer_kwargs:
   expert_lambda: 10
   expert_lambda_lr: 0.0001
   tune_expert_lambda: true
-  policy_lambda: 0
+  policy_lambda: 5
   policy_lambda_lr: 0.00001
   tune_policy_lambda: true
 version: normal-iqn-neutral

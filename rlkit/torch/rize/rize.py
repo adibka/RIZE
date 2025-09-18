@@ -9,13 +9,12 @@ from torch.nn import functional as F
 import rlkit.torch.pytorch_util as ptu
 from rlkit.core.eval_util import create_stats_ordered_dict
 from rlkit.torch.torch_iq_algorithm import TorchIQTrainer
-from rlkit.torch.idsac.iq_loss import iq_loss
+from rlkit.torch.rize.iq_loss import iq_loss
 from .risk import distortion_de
 from .utils import LinearSchedule
 
 
-class IDSACTrainer(TorchIQTrainer):
-
+class RIZETrainer(TorchIQTrainer):
     def __init__(
             self,
             args,

@@ -10,13 +10,17 @@ from rlkit.envs import make_env
 from rlkit.envs.vecenv import SubprocVectorEnv, VectorEnv
 from rlkit.launchers.launcher_util import set_seed, setup_logger
 from rlkit.samplers.data_collector import (VecMdpPathCollector, VecMdpStepCollector)
-from rlkit.torch.idsac.idsac import IDSACTrainer
-from rlkit.torch.idsac.networks import QuantileMlp, Critic, softmax
+from rlkit.torch.rize.rize import RIZETrainer
+from rlkit.torch.rize.networks import QuantileMlp, softmax
 from rlkit.torch.networks import FlattenMlp
 from rlkit.torch.sac.policies import MakeDeterministic, TanhGaussianPolicy
 from rlkit.torch.torch_iq_algorithm import TorchVecOnlineIQAlgorithm
-torch.set_num_threads(4)
-torch.set_num_interop_threads(4)
+
+import os, torch
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
 
 """
 Define experiment
@@ -107,7 +111,7 @@ def experiment(variant):
     expert_buffer.load(iq_args['expert_path'], iq_args['demos'], 
                        iq_args['subsample_freq'], variant['seed']
                       )
-    trainer = IDSACTrainer(
+    trainer = RIZETrainer(
         args=variant,
         env=dummy_env,
         policy=policy,
@@ -139,7 +143,6 @@ Main
 """
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    
     parser.add_argument("--env", type=str)
     parser.add_argument("--seed", type=int)
     args = parser.parse_args()

@@ -6,7 +6,7 @@ from rlkit.core.eval_util import create_stats_ordered_dict
 from rlkit.data_management.path_builder import PathBuilder
 from rlkit.envs.vecenv import BaseVectorEnv
 from rlkit.samplers.data_collector.base import DataCollector
-from rlkit.torch.idsac.utils import get_tau
+from rlkit.torch.rize.utils import get_tau
 
 class VecMdpPathCollector(DataCollector):
 
@@ -79,11 +79,15 @@ class VecMdpPathCollector(DataCollector):
 
             actions = self._policy.get_actions(self._obs)
             next_obs, rewards, terminals, env_infos = self._env.step(actions)
+            
             # Monitor: Estmation Bias
             tau, tau_hat, presum_tau = get_tau(self._obs, actions, self.tau_type, self.num_quantiles)
             z_values = self._zf.get_values(self._obs, actions, tau_hat)
             q_values = np.sum(presum_tau * z_values, axis=1, keepdims=True)
-
+            
+            #tau = 13
+            #q_values = self._zf.get_values(self._obs, actions, tau)
+            
             if self._render:
                 self._env.render(**self._render_kwargs)
 
@@ -115,7 +119,7 @@ class VecMdpPathCollector(DataCollector):
                     rewards=reward,
                     next_observations=next_ob,
                     terminals=terminal,
-                    agent_infos= q_value,  # policy.get_actions doesn't return agent_info
+                    agent_infos= q_value,
                     env_infos=env_info,
                 )
                 self._obs[env_idx] = next_ob
