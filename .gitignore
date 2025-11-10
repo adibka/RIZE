@@ -122,11 +122,9 @@ dmypy.json
 .pyre/
 
 .DS_Store
+.gitignore
 
 # Ignored folders and files related to Jupyter and Python checkpoints 
 extra/ 
 experts/ 
-data/ 
-results/ 
-simorgh/ 
 

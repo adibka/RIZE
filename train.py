@@ -144,12 +144,14 @@ Main
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str)
+    parser.add_argument("--demos", type=int)
     parser.add_argument("--seed", type=int)
     args = parser.parse_args()
 
     with open(f'configs/{args.env}.yaml', 'r', encoding="utf-8") as f:
         variant = yaml.load(f, Loader=yaml.FullLoader)
 
+    variant["iq_kwargs"]["demos"] = args.demos
     variant["seed"] = args.seed
     
     if torch.cuda.is_available():

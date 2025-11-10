@@ -85,7 +85,7 @@ class VecMdpPathCollector(DataCollector):
             z_values = self._zf.get_values(self._obs, actions, tau_hat)
             q_values = np.sum(presum_tau * z_values, axis=1, keepdims=True)
             
-            #tau = 13
+            #tau = 10
             #q_values = self._zf.get_values(self._obs, actions, tau)
             
             if self._render:

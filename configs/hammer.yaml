@@ -23,7 +23,7 @@ layer_size: 256
 num_quantiles: 24
 replay_buffer_size: 1000000
 trainer_kwargs:
-  alpha: 0.2
+  alpha: 0.3
   discount: 0.99
   policy_lr: 0.00003
   soft_target_tau: 0.005
@@ -36,5 +36,5 @@ trainer_kwargs:
   tune_expert_lambda: true
   policy_lambda: 5
   policy_lambda_lr: 0.00005
-  tune_policy_lambda: true
+  tune_policy_lambda: false
 version: normal-iqn-neutral

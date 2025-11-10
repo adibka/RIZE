@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="RIZE: Adaptive Regularization for Imitation Learning - Adib Karimi, Mohammad Mehdi Ebadzadeh">
+  <meta name="description" content="We propose a novel Inverse Reinforcement Learning (IRL) method with adaptive reward bounds and distributional critics, achieving expert-level performance on MuJoCo and Adroit.">
+  <meta name="keywords" content="imitation learning, inverse reinforcement learning, distributional RL, adaptive regularization, MuJoCo, Adroit">
+  <meta name="author" content="Adib Karimi, Mohammad Mehdi Ebadzadeh">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Amirkabir University of Technology">
+  <meta property="og:title" content="RIZE: Adaptive Regularization for Imitation Learning">
+  <meta property="og:description" content="We propose a novel Inverse Reinforcement Learning (IRL) method with adaptive reward bounds and distributional critics, achieving expert-level performance on MuJoCo and Adroit.">
+  <meta property="og:url" content="https://adibka.github.io/RIZE/">
+  <meta property="og:image" content="static/images/teaser.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@xAI">
+  <meta name="twitter:creator" content="@adibka">
+  <meta name="twitter:title" content="RIZE: Adaptive Regularization for Imitation Learning">
+  <meta name="twitter:description" content="We propose a novel Inverse Reinforcement Learning (IRL) method with adaptive reward bounds and distributional critics, achieving expert-level performance on MuJoCo and Adroit.">
+  <meta name="twitter:image" content="static/images/teaser.png">
+
+  <!-- Academic -->
+  <meta name="citation_title" content="RIZE: Adaptive Regularization for Imitation Learning">
+  <meta name="citation_author" content="Karimi, Adib">
+  <meta name="citation_author" content="Ebadzadeh, Mohammad Mehdi">
+  <meta name="citation_publication_date" content="2025">
+  <meta name="citation_journal_title" content="Transactions on Machine Learning Research">
+  <meta name="citation_pdf_url" content="https://openreview.net/pdf?id=a6DWqXJZCZ">
+  
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://ajax.googleapis.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+  <title>RIZE: Adaptive Regularization for Imitation Learning</title>
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <link rel="preload" href="static/css/bulma-carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/fontawesome.all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  </noscript>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- JS -->
+  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/bulma-carousel.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+  
+  <!-- MathJax – Inline + Block -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "headline": "RIZE: Adaptive Regularization for Imitation Learning",
+    "author": [
+      { "@type": "Person", "name": "Adib Karimi" },
+      { "@type": "Person", "name": "Mohammad Mehdi Ebadzadeh" }
+    ],
+    "datePublished": "2025",
+    "publisher": { "@type": "Organization", "name": "Transactions on Machine Learning Research" },
+    "url": "https://adibka.github.io/RIZE/",
+    "image": "static/images/teaser.png",
+    "abstract": "We propose a novel Inverse Reinforcement Learning (IRL) method with adaptive reward bounds and distributional critics, achieving expert-level performance on MuJoCo and Adroit environments.",
+    "citation": "@article{karimi2025rize, title={RIZE: Adaptive Regularization for Imitation Learning}, author={Karimi, Adib and Ebadzadeh, Mohammad Mehdi}, journal={Transactions on Machine Learning Research}, year={2025}, url={https://openreview.net/forum?id=a6DWqXJZCZ}}"
+  }
+  </script>
+
+  <!-- CAROUSEL IMAGES: 80% WIDTH, CENTERED -->
+  <style>
+    .carousel .item img {
+      max-width: 85% !important;
+      height: auto !important;
+      display: block;
+      margin: 0 auto;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .carousel .item {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll to Top -->
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main-content">
+
+    <!-- Title & Authors -->
+    <section class="hero">
+      <div class="hero-body">
+        <div class="container is-max-desktop">
+          <div class="columns is-centered">
+            <div class="column has-text-centered">
+              <h1 class="title is-1 publication-title">RIZE: Adaptive Regularization for Imitation Learning</h1>
+              <div class="is-size-5 publication-authors">
+                <span class="author-block">Adib Karimi,</span>
+                <span class="author-block">Mohammad Mehdi Ebadzadeh</span>
+              </div>
+              <div class="is-size-5 publication-authors">
+                <span class="author-block">Amirkabir University of Technology<br>Transactions on Machine Learning Research (TMLR) 2025</span>
+              </div>
+
+              <div class="publication-links mt-5">
+                <span class="link-block">
+                  <a href="https://openreview.net/pdf?id=a6DWqXJZCZ" target="_blank" class="button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2502.20089" target="_blank" class="button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="ai ai-arxiv"></i></span>
+                    <span>arXiv</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://github.com/adibka/RIZE" target="_blank" class="button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fab fa-github"></i></span>
+                    <span>Code</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abstract -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Abstract</h2>
+            <div class="content has-text-justified">
+              <p>
+                We propose a novel Inverse Reinforcement Learning (IRL) method that mitigates the rigidity of fixed reward structures and the limited flexibility of implicit reward regularization. Building on the Maximum Entropy IRL framework, our approach incorporates a squared temporal-difference (TD) regularizer with adaptive targets that evolve dynamically during training, thereby imposing adaptive bounds on recovered rewards and promoting robust decision-making. To capture richer return information, we integrate distributional RL into the learning process. Empirically, our method achieves expert-level performance on complex MuJoCo and Adroit environments, surpassing baseline methods on the Humanoid-v2 task with limited expert demonstrations. Extensive experiments and ablation studies further validate the effectiveness of the approach and provide insights into reward dynamics in imitation learning.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEASER – TIGHTER SPACING -->
+    <section class="hero is-small mt-3">
+      <div class="hero-body">
+        <div class="container is-max-desktop">
+          <figure class="image">
+            <img src="static/images/teaser.png" alt="RIZE achieves expert-level performance" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          </figure>
+          <p class="has-text-centered mt-3 is-size-6 has-text-grey">
+            <strong>Figure:</strong> Average performance of last 1/3 episodes across MuJoCo and Adroit tasks (10 demonstrations).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Method – ENHANCED -->
+    <section class="section">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Method</h2>
+            <div class="content has-text-justified">
+
+              <p>RIZE extends implicit reward regularization in MaxEnt IRL by introducing <strong>adaptive targets</strong> and using an <strong>Implicit Quantile Network (IQN)</strong> critic instead of standard point-estimate Q-networks. This captures full return distributions $Z^\pi(s,a)$ while optimizing policy on expectations.</p>
+
+              <p>The implicit reward is defined as:</p>
+              $$ R_Q(s,a) = Q^\pi(s,a) - \gamma V^\pi(s') \quad \text{where} \quad Q^\pi(s,a) = \mathbb{E}[Z^\pi(s,a)] $$
+              $$ V^\pi(s') = \mathbb{E}_{a' \sim \pi} [Q^\pi(s',a') - \alpha \log \pi(a'|s')] $$
+
+              <p>We introduce a convex squared TD regularizer with adaptive targets $\lambda^{\pi_E}$ (expert) and $\lambda^\pi$ (policy):</p>
+              $$ \Gamma(R_Q, \lambda) = \mathbb{E}_{\rho_E}[(R_Q - \lambda^{\pi_E})^2] + \mathbb{E}_{\rho_\pi}[(R_Q - \lambda^\pi)^2] $$
+
+              <p>The full critic objective is:</p>
+              $$ \mathcal{L} = \mathbb{E}_{\rho_E}[R_Q] - \mathbb{E}_{\rho_\pi}[R_Q] - \mathcal{H}(\pi) - c \cdot \Gamma(R_Q, \lambda) $$
+
+              <p>Targets are optimized to minimize TD error, forming a feedback loop. This yields <strong>bounded rewards</strong> (Corollary 4.2):</p>
+              $$ R_Q \in \left[ -\frac{1}{2c} + \min\{\lambda^{\pi_E}, \lambda^\pi\}, \; \frac{1}{2c} + \max\{\lambda^{\pi_E}, \lambda^\pi\} \right] $$
+
+              <p>Unlike fixed-target methods, our adaptive bounds evolve with training, preventing reward drift. The IQN critic further stabilizes learning by modeling return stochasticity, enabling robust performance on high-DoF tasks like Humanoid-v2 and Hammer-v1.</p>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Carousel – 80% WIDTH, CENTERED -->
+    <section class="hero is-small">
+      <div class="hero-body">
+        <div class="container">
+          <div id="results-carousel" class="carousel results-carousel">
+            <div class="item">
+              <img src="static/images/interval_estimates_demo_10.png" alt="RLiable plot">
+              <h2 class="subtitle has-text-centered">RLiable: Aggregate performance (10 demos)</h2>
+            </div>
+            <div class="item">
+              <img src="static/images/main_curves_demo10.png" alt="Learning curves">
+              <h2 class="subtitle has-text-centered">Learning curves (10 demos)</h2>
+            </div>
+            <div class="item">
+              <img src="static/images/rewards_lambda_bounds_demo10.png" alt="Reward bounds">
+              <h2 class="subtitle has-text-centered">Adaptive reward bounds (10 demos)</h2>
+            </div>
+            <div class="item">
+              <img src="static/images/implicit_rewards_mujoco_demo10.png" alt="Reward comparison">
+              <h2 class="subtitle has-text-centered">Recovered reward curves (10 demos)</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Summary -->
+    <section class="section">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Results</h2>
+            <div class="content has-text-justified">
+              <p>RIZE is evaluated on MuJoCo (HalfCheetah, Walker2d, Ant, Humanoid, Hopper) and Adroit (Hammer) with 3 or 10 expert demonstrations. It achieves <strong>expert-level returns</strong>, outperforming IQ-Learn, LSIQ, SQIL, CSIL, and BC — especially on <strong>Humanoid-v2</strong> and <strong>Hammer-v1</strong>. Ablations confirm that adaptive targets and IQN critic are key to stable, high-performance imitation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BibTeX -->
+    <section class="section" id="BibTeX">
+      <div class="container is-max-desktop content">
+        <div class="bibtex-header">
+          <h2 class="title">BibTeX</h2>
+          <button class="copy-bibtex-btn" onclick="copyBibTeX()" title="Copy BibTeX">
+            <i class="fas fa-copy"></i> <span class="copy-text">Copy</span>
+          </button>
+        </div>
+        <pre id="bibtex-code"><code>@article{karimi2025rize,
+  title={RIZE: Adaptive Regularization for Imitation Learning},
+  author={Karimi, Adib and Ebadzadeh, Mohammad Mehdi},
+  journal={Transactions on Machine Learning Research},
+  year={2025},
+  url={https://openreview.net/forum?id=a6DWqXJZCZ}
+}</code></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content">
+            <p>Built with <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template</a>. Licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
